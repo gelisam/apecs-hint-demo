@@ -4,7 +4,6 @@
 import Apecs
 import Apecs.Gloss
 import ApecsHintDemo
-import Data.Foldable
 import Language.Haskell.Interpreter
 import Linear (V2 (..))
 import System.Exit
@@ -29,18 +28,23 @@ interpret' code = do
     setImports ["Prelude", "Apecs", "ApecsHintDemo", "Linear"]
     interpret code (as :: System World ())
 
+indentLines :: String -> String
+indentLines = unlines . fmap ("  " ++) . lines
+
 handleEvent :: Event -> System World ()
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = do
   liftIO exitSuccess
 handleEvent (EventKey (SpecialKey KeyEnter) Down _ _) = do
   allLines <- liftIO $ readFile "new-entity"
-  for_ (lines allLines) $ \singleLine -> do
-    liftIO (interpret' singleLine) >>= \case
-      Right systemAction -> do
-        systemAction
-      Left e -> do
-        liftIO $ putStrLn $ "error interpreting " ++ show singleLine ++ ":"
-        liftIO $ putStrLn $ show e
+  let doBlock = "do\n" ++ indentLines allLines
+  liftIO (interpret' doBlock) >>= \case
+    Right systemAction -> do
+      systemAction
+    Left e -> do
+      liftIO $ putStrLn $ "while interpreting the following code:"
+      liftIO $ putStrLn $ indentLines doBlock
+      liftIO $ putStrLn $ "the following error was encountered:"
+      liftIO $ putStrLn $ show e
 handleEvent _ = do
   pure ()
 
