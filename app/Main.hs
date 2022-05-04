@@ -1,15 +1,10 @@
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
 
 import Apecs
 import Apecs.Gloss
 import ApecsHintDemo
 import Data.Foldable
-import Data.Typeable
 import Language.Haskell.Interpreter
 import Linear (V2 (..))
 import System.Exit
@@ -28,11 +23,11 @@ draw :: System World Picture
 draw = do
   foldDraw $ \(Position p) -> translate' p $ color white $ circle 10
 
-interpret' :: forall a. Typeable a => String -> IO (Either InterpreterError a)
+interpret' :: String -> IO (Either InterpreterError (System World ()))
 interpret' code = do
   runInterpreter $ do
-    setImports ["ApecsHintDemo", "Linear"]
-    interpret code (as :: a)
+    setImports ["Prelude", "Apecs", "ApecsHintDemo", "Linear"]
+    interpret code (as :: System World ())
 
 handleEvent :: Event -> System World ()
 handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = do
@@ -41,15 +36,11 @@ handleEvent (EventKey (SpecialKey KeyEnter) Down _ _) = do
   allLines <- liftIO $ readFile "new-entity"
   for_ (lines allLines) $ \singleLine -> do
     liftIO (interpret' singleLine) >>= \case
-      Right (Position p, Velocity v, Flying) -> do
-        newEntity_ (Position p, Velocity v, Flying)
-      Left _ -> do
-        liftIO (interpret' singleLine) >>= \case
-          Right (Position p, Velocity v) -> do
-            newEntity_ (Position p, Velocity v)
-          Left e -> do
-            liftIO $ putStrLn $ "error interpreting " ++ show singleLine ++ ":"
-            liftIO $ putStrLn $ show e
+      Right systemAction -> do
+        systemAction
+      Left e -> do
+        liftIO $ putStrLn $ "error interpreting " ++ show singleLine ++ ":"
+        liftIO $ putStrLn $ show e
 handleEvent _ = do
   pure ()
 
