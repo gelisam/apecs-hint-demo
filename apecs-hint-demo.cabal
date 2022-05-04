@@ -2,14 +2,22 @@ cabal-version:      2.4
 name:               apecs-hint-demo
 version:            0.1.0.0
 
-executable apecs-hint-demo
-  main-is:          Main.hs
-  -- exposed-modules:  Lib
+library
+  exposed-modules:  ApecsHintDemo
   build-depends:    base
                   , apecs
                   , apecs-gloss
+                  , linear
+  hs-source-dirs:   src
+  ghc-options: -W -Wall
+
+executable apecs-hint-demo
+  main-is:          Main.hs
+  build-depends:    base
+                  , apecs
+                  , apecs-hint-demo
+                  , apecs-gloss
                   , hint
                   , linear
-                  , random
-  hs-source-dirs:   src
+  hs-source-dirs:   app
   ghc-options: -W -Wall

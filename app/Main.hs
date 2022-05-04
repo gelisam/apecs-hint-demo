@@ -6,18 +6,12 @@
 
 import Apecs
 import Apecs.Gloss
-import Apecs.TH
+import ApecsHintDemo
 import Data.Foldable
 import Linear (V2 (..))
 import System.Exit
 import Text.Read (readMaybe)
 
-newtype Position = Position (V2 Float) deriving (Read, Show)
-newtype Velocity = Velocity (V2 Float) deriving (Read, Show)
-data Flying = Flying deriving (Read, Show)
-
-makeWorld "World" [''Position, ''Velocity, ''Flying, ''Camera]
-makeMapComponents [''Position, ''Velocity, ''Flying]
 
 initialize :: System World ()
 initialize = do
