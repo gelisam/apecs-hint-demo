@@ -5,6 +5,7 @@ import Apecs
 import Apecs.Gloss
 import ApecsHintDemo
 import Language.Haskell.Interpreter
+--import Language.Haskell.Interpreter.Unsafe (unsafeRunInterpreterWithArgs)
 import Linear (V2 (..))
 import System.Exit
 
@@ -24,6 +25,11 @@ draw = do
 
 interpret' :: String -> IO (Either InterpreterError (System World ()))
 interpret' code = do
+  -- 'runInterpreter' should work just fine with @stack run@.
+  -- to use @cabal run@, first run @cabal repl -v@ to see which @-package-db@
+  -- flags cabal is sending to ghc, then pass them to hint using
+  -- 'unsafeRunInterpreterWithArgs', like this:
+  --unsafeRunInterpreterWithArgs ["-package-db", "/home/gelisam/.cabal/store/ghc-8.8.4/package.db", "-package-db", "/home/gelisam/working/haskell/apecs-hint-demo/dist-newstyle/packagedb/ghc-8.8.4", "-package-db", "/home/gelisam/working/haskell/apecs-hint-demo/dist-newstyle/build/x86_64-linux/ghc-8.8.4/apecs-hint-demo-0.1.0.0/package.conf.inplace"] $ do
   runInterpreter $ do
     setImports ["Prelude", "Apecs", "ApecsHintDemo", "Linear"]
     interpret code (as :: System World ())
