@@ -7,22 +7,23 @@
 import Apecs
 import Apecs.Gloss
 import Apecs.TH
+import Data.Foldable
 import Linear (V2 (..))
 import System.Exit
+import Text.Read (readMaybe)
 
-newtype Position = Position (V2 Float) deriving Show
-newtype Velocity = Velocity (V2 Float) deriving Show
-data Flying = Flying
+newtype Position = Position (V2 Float) deriving (Read, Show)
+newtype Velocity = Velocity (V2 Float) deriving (Read, Show)
+data Flying = Flying deriving (Read, Show)
 
 makeWorld "World" [''Position, ''Velocity, ''Flying, ''Camera]
 makeMapComponents [''Position, ''Velocity, ''Flying]
 
 initialize :: System World ()
 initialize = do
-  _ <- newEntity (Position 0, Velocity 20)
-  _ <- newEntity (Position (-200), Velocity (V2 100 20))
-  _ <- newEntity (Position (-100), Velocity (V2 80 40), Flying)
-  pure ()
+  newEntity_ (Position 0, Velocity 20)
+  newEntity_ (Position (-200), Velocity (V2 100 20))
+  newEntity_ (Position (-100), Velocity (V2 80 40), Flying)
 
 translate' :: V2 Float -> Picture -> Picture
 translate' (V2 x y) = translate x y
@@ -32,8 +33,21 @@ draw = do
   foldDraw $ \(Position p) -> translate' p $ color white $ circle 10
 
 handleEvent :: Event -> System World ()
-handleEvent (EventKey (SpecialKey KeyEsc) _ _ _) = do
+handleEvent (EventKey (SpecialKey KeyEsc) Down _ _) = do
   liftIO exitSuccess
+handleEvent (EventKey (SpecialKey KeyEnter) Down _ _) = do
+  allLines <- liftIO $ readFile "new-entity"
+  for_ (lines allLines) $ \singleLine -> do
+    case readMaybe singleLine of
+      Just (Position p, Velocity v, Flying) -> do
+        newEntity_ (Position p, Velocity v, Flying)
+      Nothing -> do
+        case readMaybe singleLine of
+          Just (Position p, Velocity v) -> do
+            newEntity_ (Position p, Velocity v)
+          Nothing -> do
+            liftIO $ putStrLn $ "parse error in:"
+            liftIO $ putStrLn singleLine
 handleEvent _ = do
   pure ()
 
