@@ -11,7 +11,7 @@ library
   hs-source-dirs:   src
   ghc-options: -W -Wall
 
-executable apecs-hint-demo
+executable apecs-hint-demo-exe
   main-is:          Main.hs
   build-depends:    base
                   , apecs
